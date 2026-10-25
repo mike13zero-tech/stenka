@@ -9,7 +9,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;color:#fff;font-f
 canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
 .h{display:none!important}
 #hud>div.t{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 16px 0;font-weight:900;font-size:26px;text-shadow:0 2px 6px #000b;pointer-events:none}
-#lv{color:#ff6b5e;letter-spacing:3px}#mt{pointer-events:auto;font-size:22px;padding:4px 8px}
+#lv{color:#ff6b5e;letter-spacing:2px;font-size:21px}#mt{pointer-events:auto;font-size:22px;padding:4px 8px}
 #warn{position:fixed;top:calc(62px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);padding:8px 16px;border-radius:12px;background:#c02a1fd9;font-weight:900;font-size:18px;white-space:nowrap;pointer-events:none}
 #warn.ok{background:#2a9d4fd9}
 .tb{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom));width:64px;height:64px;border-radius:50%;padding:0;font-size:28px;pointer-events:auto;touch-action:none}
@@ -30,9 +30,9 @@ li{display:flex;gap:10px;padding:7px 12px;font-size:16px}li span{flex:1;overflow
 </style></head><body>
 <div id="hud" class="h"><div class="t"><div id="sc">0</div><div id="lv"></div><div id="mt">🔊</div></div>
 <div id="warn" class="h"></div>
-<button class="tb" id="tl">↶</button><button class="tb" id="tr">↷</button><button class="tb h" id="tc">🧱 К стенке</button></div>
+<button class="tb h" id="tc">🧱 К стенке</button></div>
 <div id="fl"></div>
-<div id="menu" class="ov"><h1>🧱 СТЕНКА</h1><div id="hi"></div><div id="how">Зажми руку с кирпичом, веди куда хочешь и отпусти — кирпич упадёт. Появились враги? Поверни вид кнопками ↶ ↷ и брось в них кирпич.</div>
+<div id="menu" class="ov"><h1>🧱 СТЕНКА</h1><div id="hi"></div><div id="how">Зажми руку с кирпичом, веди куда хочешь и отпусти — кирпич упадёт. Появились враги? Тяни пальцем вбок — повернёшься к ним, тап по врагу — бросок кирпичом.</div>
 <div class="sel"><button id="pv">◀</button><div id="tn"></div><button id="nx">▶</button></div><div id="dots"></div>
 <button id="play" class="big">Строить</button><button id="lbb">🏆 Рейтинг</button></div>
 <div id="over" class="ov h"><h2 id="ot"></h2><div id="os"></div><ol id="lb"></ol><button id="again" class="big">Ещё раз</button><button id="tomenu">В меню</button></div>
@@ -87,16 +87,18 @@ const brickTex=tex(192,58,(g,w,h)=>{g.fillStyle='#b4472c';g.fillRect(0,0,w,h);fo
 const BG=BX(2,.6,1),BM=new THREE.MeshLambertMaterial({map:brickTex});
 const wall=new THREE.Group();S.add(wall);
 const rowY=l=>.3+.6*l;
-function mkHand(){const g=new THREE.Group(),sk=lam(0xe8b08c),sl=lam(0x2f5d9a);
- const sph=(r,x,y,z,sx,sy,sz)=>{const m=mesh(new THREE.SphereGeometry(r,14,10),sk,x,y,z);m.scale.set(sx||1,sy||1,sz||1);g.add(m)};
- const cyl=(r,l,x,y,z,rx,mat)=>{const m=mesh(new THREE.CylinderGeometry(r,r*1.05,l,12),mat||sk,x,y,z);m.rotation.x=rx||0;g.add(m)};
- sph(.62,0,.45,0,1.2,.45,1.05);                                   // ладонь сверху кирпича
- for(let i=0;i<4;i++){const x=-.42+i*.28,L=i==1||i==2?.55:.48;     // пальцы охватывают переднюю грань
-  sph(.13,x,.4,.55);cyl(.12,L,x,.4-L/2+.02,.6);sph(.12,x,.4-L,.6)}
- sph(.14,.5,.38,.1);cyl(.13,.5,.52,.1,-.5,0);sph(.13,.52,-.15,-.5); // большой палец сзади
- const d=[0,Math.cos(.9),Math.sin(.9)];
- cyl(.34,1.1,0,.5+d[1]*.55,.2+d[2]*.55,.9);                        // предплечье
- cyl(.5,3.2,0,.5+d[1]*2.7,.2+d[2]*2.7,.9,sl);                      // рукав
+function mkHand(){
+ const g=new THREE.Group(),gl=lam(0xf2a93a),dk=lam(0xd98a1f),cf=lam(0xe9e6df),sl=lam(0x2f6fb5),Y=new THREE.Vector3(0,1,0),V=(x,y,z)=>new THREE.Vector3(x,y,z);
+ const seg=(p,a,b,r,mat,r2)=>{const d=b.clone().sub(a),L=d.length(),m=new THREE.Mesh(new THREE.CylinderGeometry(r2||r,r,L,14),mat);m.position.copy(a).addScaledVector(d,.5);m.quaternion.setFromUnitVectors(Y,d.normalize());p.add(m)};
+ const ball=(p,v,r,mat,sx,sy,sz)=>{const m=mesh(new THREE.SphereGeometry(r,16,12),mat,v.x,v.y,v.z);m.scale.set(sx||1,sy||1,sz||1);p.add(m)};
+ ball(g,V(0,.64,.02),.66,gl,1.2,.55,1.05);ball(g,V(0,.74,-.1),.5,gl,1.25,.5,1);     // рабочая перчатка: ладонь и тыл
+ ball(g,V(0,.62,.34),.3,dk,1.5,.3,.7);                                              // кожаная вставка
+ for(let i=0;i<4;i++){const x=-.48+i*.32,L=i===1||i===2?1:.88,a=V(x,.6,.46),b=V(x,.4,.66),c=V(x,.4-.36*L,.64);  // пальцы охватывают переднюю грань
+  ball(g,a,.15,gl);seg(g,a,b,.15,gl);ball(g,b,.15,gl);seg(g,b,c,.14,gl);ball(g,c,.14,gl)}
+ {const a=V(.62,.56,.12),b=V(.74,.4,-.42),c=V(.55,.12,-.62);ball(g,a,.17,gl);seg(g,a,b,.17,gl);ball(g,b,.17,gl);seg(g,b,c,.15,gl);ball(g,c,.15,gl)}   // большой палец сзади
+ const arm=new THREE.Group();arm.position.set(0,.68,-.1);g.add(arm);
+ seg(arm,V(0,0,0),V(0,.5,0),.46,cf);seg(arm,V(0,.45,0),V(0,.95,0),.55,dk,.5);seg(arm,V(0,.9,0),V(0,4.4,0),.62,sl,.55);   // манжета, лента, рукав
+ g.userData.arm=arm;arm.rotation.x=.9;arm.rotation.z=-.12;
  g.visible=false;S.add(g);return g}
 const hR=mkHand();
 const ghost=new THREE.Mesh(BG,new THREE.MeshBasicMaterial({color:0x44ff66,transparent:true,opacity:.3,depthWrite:false}));ghost.visible=false;S.add(ghost);
@@ -143,19 +145,19 @@ const sHit=()=>{noise(.12,.2);tone(140,0,.2,'sine',.25);tone(700,.05,.2,'triangl
 const hap=(k,t)=>{try{tg&&tg.HapticFeedback&&(k==='i'?tg.HapticFeedback.impactOccurred(t):tg.HapticFeedback.notificationOccurred(t))}catch(e){}};
 
 /* ---------- логика кладки: произвольное место ---------- */
-let state='menu',bricks=[],topY=0,lives=3,score=0,placed=0,nextB=60,brick=null,holding=false,nx=0,ny=-.35,yaw=0,turn=0,enT=15;
+let state='menu',bricks=[],topY=0,lives=5,score=0,placed=0,nextB=60,brick=null,holding=false,nx=0,ny=-.35,yaw=0,turn=0,enT=15;
 const XM=7,full=new Set();
 const ov=(a,b)=>Math.abs(a-b)<1.98;
 function level(x){let l=0;for(const b of bricks)if(ov(b.x,x))l=Math.max(l,b.l+1);return l}
 function supported(x,l){
  if(l===0)return true;
- const s=bricks.filter(b=>b.l===l-1&&ov(b.x,x)).map(b=>b.x).sort((a,b)=>a-b);let a=null,e=null;
- for(const v of s){if(a===null){a=v-1;e=v+1}else if(v-1<=e+.02)e=Math.max(e,v+1);else{if(x>a&&x<e)return true;a=v-1;e=v+1}}
- return a!==null&&x>a&&x<e}
+ let lo=1e9,hi=-1e9;                                  // кирпич держится, если центр тяжести над «опорной полосой» между крайними точками касания
+ for(const b of bricks)if(b.l===l-1&&ov(b.x,x)){lo=Math.min(lo,Math.max(x-1,b.x-1));hi=Math.max(hi,Math.min(x+1,b.x+1))}
+ return x>lo+.02&&x<hi-.02}
 function plan(x){const l0=level(x);let sx=x;
  for(const b of bricks)if(b.l===l0){const d=x-b.x;if(Math.abs(d)>=1.98&&Math.abs(d)<2.3)sx=b.x+Math.sign(d)*2}
  const l=level(sx);return{x:sx,l,ok:supported(sx,l)}}
-const updHud=()=>{$('lv').textContent='♥'.repeat(lives)+'♡'.repeat(Math.max(0,3-lives));$('sc').textContent=score};
+const updHud=()=>{$('lv').textContent='♥'.repeat(lives)+'♡'.repeat(Math.max(0,5-lives));$('sc').textContent=score};
 
 function spawn(){
  if(state==='over'||state==='menu')return;
@@ -163,9 +165,7 @@ function spawn(){
  tw(.2,p=>b.scale.setScalar(.3+.7*p));state='hold';holding=false;nx=0;ny=-.35;hR.visible=true;ghost.visible=true}
 
 function release(){
- if(state!=='hold'||!holding)return;holding=false;
- if(Math.abs(yaw)<.5)place();else if(enemies.some(e=>e.st==='walk'))throwBrick();
- nx=0;ny=-.35}
+ if(state!=='hold'||!holding)return;holding=false;place();nx=0;ny=-.35}
 
 function place(){
  const b=brick,pl=plan(clamp(b.position.x,-XM,XM)),y0=rowY(pl.l),sy=b.position.y,sx=b.position.x,h=Math.max(0,sy-y0),d=Math.max(.1,Math.min(.5,Math.sqrt(2*h/45)));
@@ -174,15 +174,14 @@ function place(){
 
 function land(b,pl){
  const y=rowY(pl.l);b.position.set(pl.x,y,0);wall.add(b);bricks.push({x:pl.x,l:pl.l});topY=Math.max(topY,(pl.l+1)*.6);placed++;sThud();hap('i','medium');
- const bonus=placed>=nextB;if(bonus)nextB=placed+ri(50,70);const pts=bonus?100:ri(3,5);score+=pts;updHud();
+ const bonus=placed>=nextB;if(bonus)nextB=placed+ri(50,70);const pts=bonus?ri(50,150):ri(3,5);score+=pts;updHud();
  coin(pl.x,y+.3,pts,bonus);
- const row=bricks.filter(k=>k.l===pl.l);
- if(row.length===7&&!full.has(pl.l)){full.add(pl.l);showFigure(pk(row).x+rnd(-.5,.5),(pl.l+1)*.6)}   // полный ряд из 7 кирпичей
+ if(bonus){const mx=Math.max(...bricks.map(k=>k.l)),top=bricks.filter(k=>k.l===mx);showFigure(pk(top).x+rnd(-.5,.5),(mx+1)*.6)}   // танцующая фигурка на самых верхних кирпичах
  later(.5,spawn)}
 
 function coin(x,y,pts,bonus){
  const ph=m=>new THREE.MeshPhongMaterial({color:m?0xffffff:0xd9a21b,map:m||null,shininess:80,emissive:0x6b4a00,transparent:true});
- const sd=ph(),fa=ph(faceBrick),fb=ph(avatarFace()),mats=[sd,fa,fb],Rr=1.6,zc=8;
+ const sd=ph(),fa=ph(faceBrick),fb=ph(avatarFace()),mats=[sd,fa,fb],Rr=1.3,zc=6.5;
  const pv=new THREE.Group();   // грани — плоские круги: картинка стоит вертикально и не зеркалится
  const cy=new THREE.Mesh(new THREE.CylinderGeometry(Rr,Rr,.26,48,1,true),sd);cy.rotation.x=Math.PI/2;
  const f1=new THREE.Mesh(new THREE.CircleGeometry(Rr,48),fa);f1.position.z=.13;
@@ -190,12 +189,12 @@ function coin(x,y,pts,bonus){
  pv.add(cy,f1,f2);
  const cp=C.position,t=(cp.z-zc)/cp.z,b0=new THREE.Vector3(x,y,0).sub(cp).multiplyScalar(t).add(cp);   // ближе к камере, но над тем же кирпичом
  pv.position.copy(b0);
- const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false}));glow.scale.setScalar(10);
- const lb=label('+'+pts,bonus);lb.scale.multiplyScalar(1.5);const side=x>1?-1:x<-1?1:(Math.random()<.5?-1:1);
+ const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false}));glow.scale.setScalar(8.5);
+ const lb=label('+'+pts,bonus);lb.scale.multiplyScalar(1.3);const side=x>1?-1:x<-1?1:(Math.random()<.5?-1:1);
  S.add(pv,glow,lb);sCoin();if(bonus)sBonus();
  tw(1.9,p=>{const e=1-Math.pow(1-Math.min(1,p*2),3),yy=b0.y+e*3.2,o=p<.7?1:1-(p-.7)/.3;
   pv.position.y=yy;pv.rotation.y=p*Math.PI*10;pv.scale.setScalar(Math.min(1,p*6));mats.forEach(k=>k.opacity=o);
-  glow.position.copy(pv.position);glow.material.opacity=o*(.7+.3*Math.sin(p*30));lb.position.set(b0.x+side*4,yy+.8,zc+.5);lb.material.opacity=o},
+  glow.position.copy(pv.position);glow.material.opacity=o*(.7+.3*Math.sin(p*30));lb.position.set(b0.x+side*3.4,yy+.8,zc+.5);lb.material.opacity=o},
   ()=>S.remove(pv,glow,lb))}
 
 function fall(b){
@@ -213,7 +212,12 @@ function crumble(p){
 
 /* ---------- враги ---------- */
 const enemies=[],ENN=['Полиция','Зомби','Волки'],ray=new THREE.Raycaster(),v2=new THREE.Vector2(),PL=new THREE.Plane(new THREE.Vector3(0,0,1),0),hp=new THREE.Vector3();
-function clearEnemies(){enemies.forEach(e=>S.remove(e.m));enemies.length=0}
+const piles=[],GP=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+function clearEnemies(){enemies.forEach(e=>S.remove(e.m));enemies.length=0;piles.forEach(p=>S.remove(p.g));piles.length=0}
+function addPile(x,z){   // куча обломков: остаётся до конца игры и заграждает путь врагам
+ const s=Math.max(.8,dist()/19),g=new THREE.Group();g.position.set(x,0,z);
+ for(let i=0;i<8;i++){const m=new THREE.Mesh(BX(rnd(.6,1.1),rnd(.25,.4),rnd(.4,.7)),BM);m.position.set(rnd(-.9,.9),.18+(i>4?.3:0),rnd(-.7,.7));m.rotation.set(rnd(-.3,.3),rnd(0,3),rnd(-.3,.3));g.add(m)}
+ g.scale.setScalar(s);S.add(g);piles.push({g,x,z,r:1.9*s})}
 function spawnEnemies(){
  const s=Math.max(.8,dist()/19),n=th===0?ri(1,2):th===1?ri(1,3):2,side=Math.random()<.5?-1:1,phi0=side*rnd(1.1,2.5);
  for(let j=0;j<n;j++){const m=mkEnemy(th);m.scale.multiplyScalar(s);S.add(m);enemies.push({m,s,phi:phi0+(j-(n-1)/2)*.3,d:(25+j*2)*s,h:(th===2?1.3:1.5)*s,st:'walk',t:0,sp:[1.7,1.15,3][th]*s,px:0,pz:0});}
@@ -224,21 +228,25 @@ function updEnemies(dt){
   if(e.st==='walk'){e.d-=e.sp*dt;if(e.d<=5*e.s){lives--;updHud();sBreak();hap('n','error');$('fl').style.opacity=.45;setTimeout(()=>$('fl').style.opacity=0,120);e.st='flee';e.t=0;if(lives<=0){gameOver();return}}}
   else{e.d+=16*dt*e.s;e.t+=dt;if(e.t>1.4){S.remove(e.m);enemies.splice(i,1);continue}}
   e.px=Math.sin(e.phi)*e.d;e.pz=cz-Math.cos(e.phi)*e.d;
+  if(e.st==='walk')for(const p of piles){const dx=e.px-p.x,dz=e.pz-p.z,dd=Math.hypot(dx,dz),R=p.r+.5*e.s;   // обходит кучу
+   if(dd<R){const k=dd<.001?1:R/dd;e.px=p.x+dx*k;e.pz=p.z+dz*k;e.phi=Math.atan2(e.px,cz-e.pz);e.d=Math.hypot(e.px,cz-e.pz)}}
   e.m.position.set(e.px,Math.abs(Math.sin(T*9+i))*.18*e.s,e.pz);e.m.rotation.y=Math.atan2(-e.px,cz-e.pz)+(e.st==='flee'?Math.PI:0)}
  const w=enemies.filter(e=>e.st==='walk'),el=$('warn');
  if(w.length&&(state==='hold'||state==='busy')){const e=w.reduce((a,b)=>a.d<b.d?a:b),rel=wr(e.phi-yaw),s=Math.ceil((e.d-5*e.s)/e.sp);
-  const t=Math.abs(rel)<.5?`⚠ ${ENN[th]}! Брось кирпич (${s}с)`:rel<0?`◀ ${ENN[th]}! (${s}с)`:`${ENN[th]}! (${s}с) ▶`;
+  const t=Math.abs(rel)<.5?`⚠ ${ENN[th]}! Тап — бросок (${s}с)`:rel<0?`◀ ${ENN[th]}! тяни влево (${s}с)`:`${ENN[th]}! тяни вправо ▶ (${s}с)`;
   if(el.textContent!==t)el.textContent=t;el.classList.toggle('ok',Math.abs(rel)<.5);el.classList.remove('h')}else el.classList.add('h')}
 
 function throwBrick(){
- const b=brick;state='busy';hR.visible=false;ghost.visible=false;noise(.15,.1);
+ const b=brick,g0=gen;state='busy';hR.visible=false;ghost.visible=false;noise(.15,.1);
  let best=null,bd=1.9*Math.max(.8,dist()/19);
  enemies.forEach(e=>{if(e.st!=='walk')return;const d=ray.ray.distanceToPoint(new THREE.Vector3(e.px,e.h,e.pz));if(d<bd){bd=d;best=e}});
- const s=b.position.clone(),tg2=best?new THREE.Vector3(best.px,best.h,best.pz):ray.ray.at(28,new THREE.Vector3());
- tw(.4,p=>{b.position.lerpVectors(s,tg2,p);b.position.y+=Math.sin(p*Math.PI)*1.2;b.rotation.x+=.35;b.rotation.z+=.25},()=>{
-  S.remove(b);
-  if(best){best.st='flee';best.t=0;score+=10;updHud();sHit();hap('i','heavy');crumble(tg2);
+ let gp=null;if(best)gp=new THREE.Vector3(best.px,0,best.pz);else{const q=ray.ray.intersectPlane(GP,new THREE.Vector3());if(q&&q.distanceTo(C.position)<80)gp=q}
+ const s=b.position.clone(),tg2=best?new THREE.Vector3(best.px,best.h,best.pz):gp?gp.clone().setY(.35):ray.ray.at(40,new THREE.Vector3());
+ tw(.45,p=>{b.position.lerpVectors(s,tg2,p);b.position.y+=Math.sin(p*Math.PI)*1.5;b.rotation.x+=.35;b.rotation.z+=.25},()=>{
+  S.remove(b);if(g0!==gen)return;
+  if(best){best.st='flee';best.t=0;score+=10;updHud();sHit();hap('i','heavy');
    const lb=label('+10');lb.position.set(best.px,best.h+1.8,best.pz);S.add(lb);tw(1,p=>{lb.position.y+=.03;lb.material.opacity=1-p},()=>S.remove(lb))}
+  if(gp){crumble(new THREE.Vector3(gp.x,.4,gp.z));addPile(gp.x,gp.z)}   // кирпич остаётся кучей обломков
   later(.5,spawn)})}
 
 /* ---------- фигурка из GIF за полный ряд (спрайт-лист figure.png: 51 кадр, 8x7) ---------- */
@@ -266,29 +274,33 @@ async function showBoard(){state='over';$('menu').classList.add('h');$('over').c
  const d=await api('leaderboard',{});$('os').textContent=renderBoard(d).trim()}
 function start(){
  au();gen++;clearEnemies();if(brick&&brick.parent===S)S.remove(brick);
- bricks=[];full.clear();wall.clear();topY=0;lives=3;score=0;placed=0;nextB=ri(50,70);enT=rnd(14,22);yaw=0;turn=0;updHud();
+ bricks=[];full.clear();wall.clear();topY=0;lives=5;score=0;placed=0;nextB=ri(50,70);enT=rnd(14,22);yaw=0;turn=0;updHud();
  $('menu').classList.add('h');$('over').classList.add('h');$('hud').classList.remove('h');$('again').textContent='Ещё раз';state='busy';later(.5,spawn)}
 function toMenu(){gen++;state='menu';clearEnemies();wall.clear();bricks=[];topY=0;yaw=0;hR.visible=ghost.visible=false;if(brick&&brick.parent===S)S.remove(brick);$('over').classList.add('h');$('hud').classList.add('h');$('menu').classList.remove('h')}
 $('play').onclick=start;$('again').onclick=start;$('tomenu').onclick=toMenu;$('lbb').onclick=showBoard;
 $('pv').onclick=()=>setTheme(th-1);$('nx').onclick=()=>setTheme(th+1);
 $('mt').onclick=()=>{muted=!muted;$('mt').textContent=muted?'🔇':'🔊'};
 $('tc').onclick=()=>{yaw=0};
-[['tl',-1],['tr',1]].forEach(([id,d])=>{const b=$(id);b.addEventListener('pointerdown',e=>{turn=d;e.stopPropagation()});['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,()=>{if(turn===d)turn=0}))});
 addEventListener('keydown',e=>{if(e.key==='ArrowLeft')turn=-1;if(e.key==='ArrowRight')turn=1});addEventListener('keyup',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight')turn=0});
 const point=e=>{nx=e.clientX/innerWidth*2-1;ny=-(e.clientY/innerHeight*2-1)};
-let sx0=0;
-addEventListener('pointerdown',e=>{au();sx0=e.clientX;if(state==='hold'&&!e.target.closest('button,#mt')){holding=true;point(e)}});
-addEventListener('pointermove',e=>{if(holding)point(e)});
-addEventListener('pointerup',e=>{if(state==='menu'&&Math.abs(e.clientX-sx0)>50)setTheme(th+(e.clientX<sx0?1:-1));release()});
-addEventListener('pointercancel',()=>{holding=false;nx=0;ny=-.35});
+let sx0=0,ptr=null;
+const alerting=()=>enemies.some(e=>e.st==='walk');
+addEventListener('pointerdown',e=>{au();sx0=e.clientX;if(state==='hold'&&!e.target.closest('button,#mt')){
+ if(alerting())ptr={x:e.clientX,lx:e.clientX,nx:e.clientX/innerWidth*2-1,ny:-(e.clientY/innerHeight*2-1),moved:false};   // враги: тащим — поворот, тап — бросок
+ else{holding=true;point(e)}}});
+addEventListener('pointermove',e=>{if(holding)point(e);
+ if(ptr){const dx=e.clientX-ptr.lx;ptr.lx=e.clientX;if(Math.abs(e.clientX-ptr.x)>12)ptr.moved=true;if(ptr.moved)yaw=wr(yaw+dx*.006)}});
+addEventListener('pointerup',e=>{if(state==='menu'&&Math.abs(e.clientX-sx0)>50)setTheme(th+(e.clientX<sx0?1:-1));
+ if(ptr){const p=ptr;ptr=null;if(!p.moved&&state==='hold'&&alerting()&&brick){v2.set(p.nx,p.ny);ray.setFromCamera(v2,C);throwBrick()}}else release()});
+addEventListener('pointercancel',()=>{holding=false;ptr=null;nx=0;ny=-.35});
 const u=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user;$('hi').textContent=u?`Привет, ${u.first_name}! Выбери место стройки`:'Выбери место стройки';
 
 /* ---------- цикл ---------- */
-const clk=new THREE.Clock(),tp=new THREE.Vector3(),tl=new THREE.Vector3(),cl=new THREE.Vector3(0,4,0),tv=new THREE.Vector3();let T=0;
+const clk=new THREE.Clock(),tp=new THREE.Vector3(),tl=new THREE.Vector3(),cl=new THREE.Vector3(0,4,0),tv=new THREE.Vector3(),QI=new THREE.Quaternion();let T=0;
 setTheme(0);
 (function loop(){
  requestAnimationFrame(loop);const dt=Math.min(clk.getDelta(),.05);T+=dt;const D=dist(),k=Math.min(1,dt*4),play=state==='hold'||state==='busy';
- if(play){yaw=wr(yaw+turn*1.8*dt);if(!enemies.length){enT-=dt;if(enT<=0){spawnEnemies();enT=rnd(18,30)}}}
+ if(play){yaw=wr(yaw+turn*1.8*dt);if(!alerting()&&!ptr&&!turn)yaw-=yaw*Math.min(1,dt*2.5);if(!enemies.length){enT-=dt;if(enT<=0){spawnEnemies();enT=rnd(18,30)}}}
  if(state==='menu'){const a=Math.sin(T*.35)*.55;tp.set(Math.sin(a)*D,4.5,Math.cos(a)*D);tl.set(0,4,0)}
  else{const ly=topY+1.5;tp.set(0,ly+2.2,D);tl.set(0,ly,0)}
  C.position.lerp(tp,k);cl.lerp(tl,k);
@@ -301,10 +313,13 @@ setTheme(0);
  if(play)updEnemies(dt);
  $('tc').classList.toggle('h',!(play&&Math.abs(yaw)>.3));
  if(state==='hold'&&brick){
-  const thr=Math.abs(yaw)>.5,kk=1-Math.exp(-dt*25);v2.set(nx,ny+(thr?.1:0));ray.setFromCamera(v2,C);
-  if(!thr){if(ray.ray.intersectPlane(PL,hp)){const x=clamp(hp.x,-XM,XM);tv.set(x,Math.max(hp.y+1.6,level(x)*.6+1),0);brick.position.lerp(tv,kk)}
-   brick.rotation.y=0;const pl=plan(clamp(brick.position.x,-XM,XM));ghost.visible=true;ghost.position.set(pl.x,rowY(pl.l),0);ghost.material.color.set(pl.ok?0x44ff66:0xff4444)}
-  else{ray.ray.at(4.2,tv);brick.position.lerp(tv,kk);brick.rotation.y=-yaw;ghost.visible=false}
-  hR.position.copy(brick.position);hR.rotation.y=brick.rotation.y;hR.visible=true}
+  const al=alerting(),kk=1-Math.exp(-dt*25);if(al&&holding)holding=false;
+  if(al){const f=13,hh=f*Math.tan(C.fov*Math.PI/360),hw=hh*C.aspect;   // враги: рука с кирпичом справа внизу, готова к броску
+   tv.set(hw*.55,-hh*.62,-f);C.localToWorld(tv);brick.position.lerp(tv,kk);brick.quaternion.slerp(C.quaternion,kk);ghost.visible=false}
+  else{v2.set(nx,ny);ray.setFromCamera(v2,C);
+   if(ray.ray.intersectPlane(PL,hp)){const x=clamp(hp.x,-XM,XM);tv.set(x,Math.max(hp.y+1.6,level(x)*.6+1),0);brick.position.lerp(tv,kk)}
+   brick.quaternion.slerp(QI,kk);const pl=plan(clamp(brick.position.x,-XM,XM));ghost.visible=true;ghost.position.set(pl.x,rowY(pl.l),0);ghost.material.color.set(pl.ok?0x44ff66:0xff4444)}
+  hR.position.copy(brick.position);hR.quaternion.copy(brick.quaternion);hR.visible=true;
+  const arm=hR.userData.arm;arm.rotation.x+=((al?1.4:.9)-arm.rotation.x)*kk;arm.rotation.z+=((al?-.35:-.12)-arm.rotation.z)*kk}
  runFx(dt);R.render(S,C)})();
 </script></body></html>
